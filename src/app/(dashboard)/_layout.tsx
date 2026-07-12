@@ -1,65 +1,103 @@
-// DashboardLayout.tsx
-import { MaterialIcons } from "@expo/vector-icons";
-import type { BottomTabBarButtonProps } from "@react-navigation/bottom-tabs";
-import { Tabs } from "expo-router";
 import React from "react";
 import { TouchableOpacity, View } from "react-native";
+import { Tabs } from "expo-router";
+import type { BottomTabBarButtonProps } from "@react-navigation/bottom-tabs";
+import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 
 const tabs = [
-    { label: "Home", name: "home", icon: "home" },
-    { label: "Reports", name: "reports", icon: "bar-chart" },
-    { label: "Add", name: "add", icon: "add" }, // Middle Action Button
-    { label: "Workouts", name: "transactions", icon: "fitness-center" }, // Icon එක fitness-center ලෙස වෙනස් කළා
-    { label: "Profile", name: "profile", icon: "person" },
+    { label: "Home", name: "home", icon: "home", type: "material" },
+    { label: "Workout", name: "WorkoutsScreen", icon: "dumbbell", type: "community" },
+    { label: "Add", name: "add", icon: "add", type: "material" },
+    { label: "Analytics", name: "reports", icon: "bar-chart", type: "material" },
+    { label: "Profile", name: "profile", icon: "account", type: "community" },
 ] as const;
-
 const DashboardLayout = () => {
     return (
         <Tabs
             screenOptions={({ route }) => ({
-                tabBarActiveTintColor: "#f97316", // Active Color එක Orange (#f97316) කළා
-                tabBarInactiveTintColor: "#52525b", // Inactive Color එක Zinc-600 කළා
                 headerShown: false,
-                tabBarStyle: {
-                    backgroundColor: "#09090b", // Bottom Tab එක Dark Zinc (#09090b) කළා
-                    borderTopWidth: 1,
-                    borderTopColor: "#18181b", // Border එක Zinc-900 කළා
-                    height: 85,
-                    paddingTop: 8,
-                    paddingBottom: 20,
-                    elevation: 0, // Android shadow අයින් කළා (Dark theme එකට පිරිසිදුව පෙනීමට)
+                tabBarActiveTintColor: "#f97316",
+                tabBarInactiveTintColor: "#71717a",
+                tabBarShowLabel: true,
+
+                tabBarLabelStyle: {
+                    fontSize: 11,
+                    fontWeight: "700",
+                    letterSpacing: 0.5,
+                    marginTop: -4,
                 },
+
+                tabBarStyle: {
+                    backgroundColor: "#09090b",
+                    borderTopWidth: 1,
+                    borderTopColor: "#27272a",
+                    height: 88,
+                    paddingTop: 8,
+                    paddingBottom: 24,
+                    position: "absolute",
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                },
+
                 tabBarButton:
                     route.name === "add"
-                        ? ({ accessibilityState, onPress }: BottomTabBarButtonProps) => (
+                        ? ({ onPress }: BottomTabBarButtonProps) => (
                             <TouchableOpacity
                                 onPress={onPress}
                                 activeOpacity={0.8}
-                                style={{
-                                    flex: 1,
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                }}
+                                className="flex-1 justify-center items-center"
                             >
-                                {/* මැද බටන් එක Orange සහ Glow Effect එකක් සහිතව වෙනස් කළා */}
-                                <View className="w-14 h-14 bg-orange-500 rounded-full items-center justify-center -mt-6 shadow-xl shadow-orange-500/50 border-4 border-zinc-950">
-                                    <MaterialIcons name="add" color="black" size={28} />
+                                <View
+                                    className="w-14 h-14 bg-orange-500 rounded-full items-center justify-center -mt-7 shadow-xl shadow-orange-500/40 border-4 border-zinc-950 elevation-8"
+                                >
+                                    <MaterialIcons name="add" size={32} color="black" />
                                 </View>
                             </TouchableOpacity>
                         )
-                        : undefined,
+                        : ({ children, onPress, accessibilityState }: BottomTabBarButtonProps) => (
+                            <TouchableOpacity
+                                onPress={onPress}
+                                activeOpacity={0.5}
+                                className="flex-1 justify-center items-center"
+                            >
+                                {accessibilityState?.selected && (
+                                    <View className="absolute top-[-8px] w-6 h-[3px] bg-orange-500 rounded-full shadow-md shadow-orange-500/50" />
+                                )}
+                                {children}
+                            </TouchableOpacity>
+                        ),
             })}
         >
-            {tabs.map(({ name, icon, label }) => (
+            {tabs.map((tab) => (
                 <Tabs.Screen
-                    key={name}
-                    name={name}
+                    key={tab.name}
+                    name={tab.name}
                     options={{
-                        title: label,
-                        tabBarLabel: name === "add" ? "" : label,
-                        tabBarIcon: ({ color, size }) => (
-                            <MaterialIcons name={icon as any} color={color} size={size} />
-                        ),
+                        title: tab.label,
+                        tabBarLabel: tab.name === "add" ? "" : tab.label,
+
+                        tabBarIcon: ({ color, focused }) => {
+                            const iconSize = focused ? 26 : 24;
+
+                            if (tab.type === "community") {
+                                return (
+                                    <MaterialCommunityIcons
+                                        name={tab.icon as any}
+                                        color={color}
+                                        size={iconSize}
+                                    />
+                                );
+                            }
+
+                            return (
+                                <MaterialIcons
+                                    name={tab.icon as any}
+                                    color={color}
+                                    size={iconSize}
+                                />
+                            );
+                        },
                     }}
                 />
             ))}
