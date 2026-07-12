@@ -42,11 +42,6 @@ export interface WorkoutPlan {
   userId: string;
   title: string;
   day: string;
-  category: {
-    id: string;
-    name: string;
-    icon: string;
-  } | null;
   exercises: PlannedExercise[];
   completed?: boolean;
   lastCompletedAt?: any | null;
@@ -194,13 +189,12 @@ export const deleteWorkout = async (workoutId: string) => {
   return true;
 };
 
-
-
 export const addWorkoutPlan = async (data: {
+  userId?: string;
   title: string;
   day: string;
-  category: { id: string; name: string; icon: string } | null;
   exercises: PlannedExercise[];
+  completed?: boolean;
 }) => {
   if (!auth.currentUser) throw new Error("User not logged in");
 
@@ -208,9 +202,8 @@ export const addWorkoutPlan = async (data: {
     userId: auth.currentUser.uid,
     title: data.title || "",
     day: data.day || "Monday",
-    category: data.category || null,
     exercises: data.exercises || [],
-    completed: false,
+    completed: data.completed ?? false,
     lastCompletedAt: null,
     createdAt: serverTimestamp(),
   });
@@ -230,7 +223,6 @@ export const getAllWorkoutPlans = async (): Promise<WorkoutPlan[]> => {
       userId: data.userId,
       title: data.title || "",
       day: data.day || "",
-      category: data.category || null,
       exercises: data.exercises || [],
       completed: data.completed === true,
       lastCompletedAt: data.lastCompletedAt || null,
@@ -252,7 +244,6 @@ export const listenToWorkoutPlans = (callback: (plans: WorkoutPlan[]) => void) =
         userId: data.userId,
         title: data.title || "",
         day: data.day || "",
-        category: data.category || null,
         exercises: data.exercises || [],
         completed: data.completed === true,
         lastCompletedAt: data.lastCompletedAt || null,

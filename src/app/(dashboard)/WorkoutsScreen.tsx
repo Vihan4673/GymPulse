@@ -13,20 +13,76 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { listenToWorkoutPlans, deleteWorkoutPlan, updateWorkoutPlan, WorkoutPlan } from '@/service/workoutService';
 import Toast from 'react-native-toast-message';
+import * as Notifications from 'expo-notifications';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
 
 const WorkoutsScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDay, setSelectedDay] = useState<string>('All');
   const [workoutPlans, setWorkoutPlans] = useState<WorkoutPlan[]>([]);
-
   const [activePlanId, setActivePlanId] = useState<string | null>(null);
   const [seconds, setSeconds] = useState<number>(0);
   const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
 
   const timerRef = useRef<any>(null);
-
   const daysOfWeek = ['All', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
+  // Profile එකෙන් set කරපු Time එකට අනුව Notification එක Refresh කරන Function එක
+  const refreshScheduledReminder = async (plans: WorkoutPlan[]) => {
+    try {
+      // Profile එකෙන් save කරපු පැය සහ මිනිත්තු AsyncStorage මඟින් කියවීම (Default: උදේ 8:00)
+      const savedHour = await AsyncStorage.getItem('notification_hour');
+      const savedMinute = await AsyncStorage.getItem('notification_minute');
+
+      const hour = savedHour ? parseInt(savedHour, 10) : 8;
+      const minute = savedMinute ? parseInt(savedMinute, 10) : 0;
+
+      // පැරණි notifications අයින් කිරීම
+      await Notifications.cancelAllScheduledNotificationsAsync();
+
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const todayName = days[new Date().getDay()];
+
+      // අද දවසේ ඉතිරිව ඇති routines වෙන් කර ගැනීම
+      const todaysPendingPlans = plans.filter(
+          (plan) => plan.day?.toLowerCase() === todayName.toLowerCase() && !plan.completed
+      );
+
+      let notificationBody = "You have scheduled workouts for today. Let's get moving!";
+      if (todaysPendingPlans.length > 0) {
+        const planTitles = todaysPendingPlans.map(p => `"${p.title}"`).join(', ');
+        notificationBody = `Today's Routines: ${planTitles}. Let's smash it! 🔥`;
+      }
+
+      // User සකස් කළ වේලාවට Notification එක Schedule කිරීම
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: "💪 Time to hit the gym!",
+          body: notificationBody,
+          sound: 'default',
+        },
+        trigger: {
+          type: 'daily',
+          hour: hour,
+          minute: minute,
+        } as any, // TypeScript strict check මඟ හැරීමට
+      });
+    } catch (error) {
+      console.error("Failed to refresh notification:", error);
+    }
+  };
+
+  // Timer useEffect
   useEffect(() => {
     if (isTimerRunning && activePlanId) {
       timerRef.current = setInterval(() => {
@@ -41,28 +97,17 @@ const WorkoutsScreen: React.FC = () => {
     };
   }, [isTimerRunning, activePlanId]);
 
-  const formatTime = (totalSeconds: number) => {
-    const mins = Math.floor(totalSeconds / 60);
-    const secs = totalSeconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const handleToggleTimer = (planId: string) => {
-    if (activePlanId !== planId) {
-      setActivePlanId(planId);
-      setSeconds(0);
-      setIsTimerRunning(true);
-    } else {
-      setIsTimerRunning(!isTimerRunning);
-    }
-  };
-
+  // Firebase Live Data Listener
   useEffect(() => {
     const unsubscribe = listenToWorkoutPlans((data) => {
       if (data) {
         const plans = data as WorkoutPlan[];
         setWorkoutPlans(plans);
 
+        // Plans වෙනස් වන විට (හෝ අලුතින් එකතු වන විට) Notification එක update වේ
+        refreshScheduledReminder(plans);
+
+        // සතියක Auto-Reset Logic එක
         const now = new Date();
         plans.forEach(async (plan) => {
           if (plan.completed && plan.lastCompletedAt) {
@@ -86,6 +131,22 @@ const WorkoutsScreen: React.FC = () => {
     });
     return () => unsubscribe && unsubscribe();
   }, []);
+
+  const formatTime = (totalSeconds: number) => {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleToggleTimer = (planId: string) => {
+    if (activePlanId !== planId) {
+      setActivePlanId(planId);
+      setSeconds(0);
+      setIsTimerRunning(true);
+    } else {
+      setIsTimerRunning(!isTimerRunning);
+    }
+  };
 
   const handleToggleComplete = async (planId: string, currentStatus: boolean, title: string) => {
     const nextStatus = !currentStatus;

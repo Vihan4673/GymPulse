@@ -16,6 +16,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { getUserProfile, updateUserProfile } from '@/service/userService';
 import EditProfileModal from '@/components/EditProfileModal';
 import ChangePasswordModal from '@/components/ChangePasswordModal';
+import NotificationSettings from '@/components/NotificationSettings';
 
 export interface UserProfile {
   name: string;
@@ -169,12 +170,14 @@ const ProfileScreen: React.FC = () => {
                       subtitle,
                       onPress,
                       color = '#a1a1aa',
+                      rightElement,
                     }: {
     icon: string;
     title: string;
     subtitle?: string;
     onPress?: () => void;
     color?: string;
+    rightElement?: React.ReactNode;
   }) => (
       <TouchableOpacity
           onPress={onPress}
@@ -189,7 +192,7 @@ const ProfileScreen: React.FC = () => {
           <Text className="text-white font-bold text-base">{title}</Text>
           {subtitle && <Text className="text-zinc-500 text-xs mt-0.5">{subtitle}</Text>}
         </View>
-        <MaterialIcons name="chevron-right" size={20} color="#52525b" />
+        {rightElement ? rightElement : <MaterialIcons name="chevron-right" size={20} color="#52525b" />}
       </TouchableOpacity>
   );
 
@@ -224,6 +227,7 @@ const ProfileScreen: React.FC = () => {
             </Text>
           </View>
 
+          {/* Body Stats Block */}
           <View className="flex-row mx-6 -mt-6 mb-8 bg-zinc-900 p-6 rounded-3xl border border-zinc-800 shadow-xl">
             <View className="flex-1 items-center">
               <Text className="text-zinc-500 text-[10px] font-bold uppercase mb-1">Age</Text>
@@ -247,6 +251,12 @@ const ProfileScreen: React.FC = () => {
             <MenuItem icon="lock" title="Change Password" subtitle="Keep your account secure" onPress={() => setShowPasswordModal(true)} color="#f59e0b" />
           </MenuSection>
 
+          {/* Preferences Section - මෙතනට තමා අලුත් Component එක pass කරන්නේ */}
+          <MenuSection title="Preferences">
+            <NotificationSettings MenuItem={MenuItem} />
+          </MenuSection>
+
+          {/* Danger Zone */}
           <MenuSection title="Danger Zone">
             <MenuItem
                 icon="logout"

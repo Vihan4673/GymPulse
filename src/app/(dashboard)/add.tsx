@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { addWorkoutPlan } from '@/service/workoutService';
+import { useAuth } from '@/hooks/useAuth';
 
 type WeekDay = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday';
 
@@ -27,6 +28,7 @@ interface ExerciseItem {
 }
 
 const AddWorkoutPlanScreen: React.FC = () => {
+  const { user } = useAuth();
   const [planName, setPlanName] = useState('');
   const [selectedDay, setSelectedDay] = useState<WeekDay>('Monday');
   const [exercises, setExercises] = useState<ExerciseItem[]>([
@@ -65,6 +67,13 @@ const AddWorkoutPlanScreen: React.FC = () => {
   };
 
   const handleSavePlan = async () => {
+    if (!user?.uid) {
+      const errorMsg = "User session not found. Please log in again.";
+      if (Platform.OS === 'web') alert(errorMsg);
+      else Alert.alert("Error", errorMsg);
+      return;
+    }
+
     if (!planName.trim()) {
       if (Platform.OS === 'web') {
         alert("Required Field: Please enter a Routine Title.");
@@ -73,6 +82,7 @@ const AddWorkoutPlanScreen: React.FC = () => {
       }
       return;
     }
+
     const hasEmptyExercise = exercises.some(ex => !ex.name.trim() || !ex.sets.trim() || !ex.reps.trim());
     if (hasEmptyExercise) {
       if (Platform.OS === 'web') {
@@ -88,9 +98,10 @@ const AddWorkoutPlanScreen: React.FC = () => {
       console.log("Saving Routine...");
 
       await addWorkoutPlan({
+        userId: user.uid,
         title: planName.trim(),
         day: selectedDay,
-        category: null,
+        completed: false,
         exercises: exercises.map(ex => ({
           name: ex.name.trim(),
           sets: parseInt(ex.sets) || 0,
@@ -162,6 +173,7 @@ const AddWorkoutPlanScreen: React.FC = () => {
                     <TouchableOpacity
                         key={day}
                         onPress={() => setSelectedDay(day)}
+                        disabled={isLoading}
                         style={{ width: itemWidth }}
                         className={`py-2.5 rounded-xl border items-center justify-center ${
                             isSelected ? 'bg-orange-500 border-orange-500' : 'bg-zinc-900 border-zinc-850'
@@ -183,6 +195,7 @@ const AddWorkoutPlanScreen: React.FC = () => {
               <Text className="text-zinc-500 font-bold uppercase text-xs">Exercises & Targets</Text>
               <TouchableOpacity
                   onPress={addExerciseRow}
+                  disabled={isLoading}
                   className="flex-row items-center bg-orange-500/10 border border-orange-500/30 px-3 py-1 rounded-lg"
               >
                 <MaterialIcons name="add" size={14} color="#f97316" />
@@ -197,7 +210,7 @@ const AddWorkoutPlanScreen: React.FC = () => {
                     <Text className="text-orange-500 font-black text-xs uppercase tracking-wider">
                       Exercise #{index + 1}
                     </Text>
-                    <TouchableOpacity onPress={() => removeExerciseRow(item.id)}>
+                    <TouchableOpacity onPress={() => removeExerciseRow(item.id)} disabled={isLoading}>
                       <MaterialIcons name="delete-outline" size={18} color="#ef4444" />
                     </TouchableOpacity>
                   </View>
@@ -205,6 +218,7 @@ const AddWorkoutPlanScreen: React.FC = () => {
                   {/* Exercise Name Input */}
                   <TextInput
                       value={item.name}
+                      editable={!isLoading}
                       onChangeText={(val) => handleExerciseChange(item.id, 'name', val)}
                       className="bg-zinc-950 p-3 rounded-xl text-white border border-zinc-900 mb-3 text-sm font-medium focus:border-orange-500/50"
                       placeholder="e.g., Upper Chest Press / Lat Pulldown"
@@ -217,6 +231,7 @@ const AddWorkoutPlanScreen: React.FC = () => {
                       <Text className="text-zinc-500 text-xs font-bold uppercase mr-2">Sets</Text>
                       <TextInput
                           value={item.sets}
+                          editable={!isLoading}
                           onChangeText={(val) => handleExerciseChange(item.id, 'sets', val)}
                           keyboardType="numeric"
                           className="flex-1 p-2 text-white font-bold text-center"
@@ -231,6 +246,7 @@ const AddWorkoutPlanScreen: React.FC = () => {
                       <Text className="text-zinc-500 text-xs font-bold uppercase mr-2">Reps</Text>
                       <TextInput
                           value={item.reps}
+                          editable={!isLoading}
                           onChangeText={(val) => handleExerciseChange(item.id, 'reps', val)}
                           keyboardType="numeric"
                           className="flex-1 p-2 text-white font-bold text-center"
