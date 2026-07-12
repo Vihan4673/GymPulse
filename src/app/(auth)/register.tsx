@@ -62,8 +62,6 @@ export default function RegisterScreen() {
         text2: "Account created successfully.",
       });
 
-      // ලොග් වුනාට පස්සේ ආයේ register screen එකට back එන්න බැරි වෙන්න replace එක පාවිච්චි කරනවා
-      // ඔයාගේ folder structure එක අනුව නිවැරදි path එක (e.g., "/(dashboard)/home") මෙතනට දෙන්න
       navigation.replace("/(dashboard)/home");
 
     } catch (error: any) {
@@ -80,7 +78,7 @@ export default function RegisterScreen() {
 
   return (
       <LinearGradient
-          colors={["#09090b", "#18181b", "#ea580c"]} // Zinc 950 → Zinc 900 → Orange 600
+          colors={["#09090b", "#18181b", "#ea580c"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={{ flex: 1, position: "relative" }}
@@ -93,7 +91,7 @@ export default function RegisterScreen() {
             <View className="absolute bottom-32 left-1/4 w-40 h-40 bg-zinc-700 rounded-full opacity-10" />
           </View>
 
-          {/* Top Navigation / Brand */}
+          {/* Top Navigation  */}
           <View className="flex flex-row justify-between items-center p-6 pt-12 z-10">
             <View className="flex-row items-center">
               <View className="w-8 h-8 bg-orange-500 rounded-lg items-center justify-center mr-2">
@@ -203,7 +201,7 @@ export default function RegisterScreen() {
                   </View>
                 </View>
 
-                {/* Confirm Password Input */}
+                {/* Password Input */}
                 <View className="mb-6">
                   <Text className="text-zinc-300 font-semibold mb-2">
                     Confirm Password
