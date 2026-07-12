@@ -1,18 +1,23 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
+import { View } from 'react-native'
+import React from 'react'
+import { Slot, usePathname } from 'expo-router'
+import Toast from "react-native-toast-message";
+import '../../global.css'
+import { AuthProvider } from '@/context/authContext';
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+const _layout = () => {
 
-SplashScreen.preventAutoHideAsync();
+  const pathName = usePathname();
+  console.log("Current Path:", pathName);
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
-    </ThemeProvider>
-  );
+    <AuthProvider>
+      <View style={{ flex: 1 }}>
+        <Slot /> 
+        <Toast />  
+      </View>
+    </AuthProvider>
+  )
 }
+
+export default _layout
