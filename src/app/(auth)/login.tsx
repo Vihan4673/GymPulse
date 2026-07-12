@@ -51,7 +51,7 @@ export default function LoginScreen() {
           <View className="absolute bottom-32 left-1/4 w-40 h-40 bg-zinc-700 rounded-full opacity-10" />
         </View>
 
-        {/* Top Navigation / Brand */}
+        {/* Top Navigation */}
         <View className="flex flex-row justify-between items-center p-6 pt-12">
           <View className="flex-row items-center space-x-2">
             <View className="w-8 h-8 bg-orange-500 rounded-lg items-center justify-center">
@@ -142,7 +142,7 @@ export default function LoginScreen() {
             </View>
           </View>
 
-          {/* Gym Benefits / Stats Info */}
+          {/* Gym Benefits o */}
           <View className="flex-row justify-between mt-8 w-full max-w-md px-2">
             <View className="items-center flex-1">
               <View className="w-12 h-12 bg-zinc-900 border border-zinc-800 rounded-2xl items-center justify-center mb-2">
