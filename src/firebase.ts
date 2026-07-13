@@ -3,13 +3,13 @@ import { getAuth } from "firebase/auth";
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyD6w5njNyz1NdKbvyK15F8oAQxvIHVvTIQ",
-  authDomain: "gympluse-39b27.firebaseapp.com",
-  projectId: "gympluse-39b27",
-  storageBucket: "gympluse-39b27.firebasestorage.app",
-  messagingSenderId: "583277088239",
-  appId: "1:583277088239:web:2c529fd0d25344ee41ba1a",
-  measurementId: "G-MP9MMX5X0M"
+  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
 const app = initializeApp(firebaseConfig);
