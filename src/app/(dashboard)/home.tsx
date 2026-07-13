@@ -158,7 +158,11 @@ const HomeScreen: React.FC = () => {
     return (
         <SafeAreaView className="flex-1 bg-zinc-950">
             <StatusBar barStyle="light-content" backgroundColor="#09090b" />
-            <ScrollView showsVerticalScrollIndicator={false}>
+
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ flexGrow: 1, paddingBottom: 120 }}
+            >
 
                 <LinearGradient
                     colors={["#ea580c", "#9a3412"]}
@@ -356,7 +360,7 @@ const HomeScreen: React.FC = () => {
                 </View>
 
                 {/* Today's Activity List */}
-                <View className="px-6 mb-12">
+                <View className="px-6">
                     <View className="flex-row justify-between items-center mb-4">
                         <Text className="text-white text-xl font-black uppercase tracking-tight">Today's Activity</Text>
                         <TouchableOpacity onPress={() => navigation.push('/(dashboard)/WorkoutsScreen')}>
@@ -379,28 +383,32 @@ const HomeScreen: React.FC = () => {
                                 return (
                                     <View
                                         key={workout.id}
-                                        className="flex-row items-center p-4 bg-zinc-900 border-b border-zinc-800"
+                                        className="flex-row items-center justify-between p-4 bg-zinc-900 border-b border-zinc-800"
                                     >
-                                        <View className="w-12 h-12 rounded-2xl items-center justify-center bg-orange-500/10 border border-orange-500/20">
-                                            <MaterialIcons
-                                                name="fitness-center"
-                                                size={22}
-                                                color="#f97316"
-                                            />
+                                        <View className="flex-row items-center flex-1 pr-3">
+                                            <View className="w-12 h-12 rounded-2xl items-center justify-center bg-orange-500/10 border border-orange-500/20 flex-shrink-0">
+                                                <MaterialIcons
+                                                    name="fitness-center"
+                                                    size={22}
+                                                    color="#f97316"
+                                                />
+                                            </View>
+
+                                            <View className="flex-1 ml-4">
+                                                <Text className="text-white font-bold text-base capitalize" numberOfLines={1}>
+                                                    {displayName}
+                                                </Text>
+                                                <Text className="text-zinc-400 text-xs mt-0.5" numberOfLines={1}>
+                                                    Logged Today • 🔥 Ready to crush more
+                                                </Text>
+                                            </View>
                                         </View>
 
-                                        <View className="flex-1 ml-4">
-                                            <Text className="text-white font-bold text-base capitalize">
-                                                {displayName}
-                                            </Text>
-                                            <Text className="text-zinc-400 text-xs mt-0.5" numberOfLines={1}>
-                                                Logged Today • 🔥 Ready to crush more
+                                        <View className="flex-shrink-0 items-end">
+                                            <Text className="font-black text-base text-orange-500">
+                                                {workout.durationMinutes} min
                                             </Text>
                                         </View>
-
-                                        <Text className="font-black text-base text-orange-500">
-                                            {workout.durationMinutes} min
-                                        </Text>
                                     </View>
                                 );
                             })

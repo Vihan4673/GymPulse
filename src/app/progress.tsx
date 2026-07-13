@@ -47,29 +47,63 @@ const ProgressGallery = () => {
     }, [rawPhotos]);
 
     const pickAndUploadImage = async () => {
-        const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-        if (permissionResult.granted === false) {
-            Toast.show({ type: 'error', text1: 'Permission Denied', text2: 'Camera access is required.' });
-            return;
-        }
+        Alert.alert(
+            "Select Photo Source",
+            "Choose how you want to add your progress photo:",
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Open Camera 📸",
+                    onPress: () => handleImageSelection('camera')
+                },
+                {
+                    text: "Choose from Gallery 🖼️",
+                    onPress: () => handleImageSelection('gallery')
+                }
+            ]
+        );
+    };
 
-        const result = await ImagePicker.launchCameraAsync({
-            allowsEditing: true,
-            aspect: [4, 5],
-            quality: 0.4,
-            base64: true,
-        });
+    const handleImageSelection = async (source: 'camera' | 'gallery') => {
+        let result;
 
-        if (!result.canceled && result.assets[0].base64) {
-            setLoading(true);
-            try {
+        try {
+            if (source === 'camera') {
+                const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+                if (!permissionResult.granted) {
+                    Toast.show({ type: 'error', text1: 'Permission Denied', text2: 'Camera access is required.' });
+                    return;
+                }
+                result = await ImagePicker.launchCameraAsync({
+                    allowsEditing: true,
+                    aspect: [4, 5],
+                    quality: 0.4,
+                    base64: true,
+                });
+            } else {
+                const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+                if (!permissionResult.granted) {
+                    Toast.show({ type: 'error', text1: 'Permission Denied', text2: 'Gallery access is required.' });
+                    return;
+                }
+                result = await ImagePicker.launchImageLibraryAsync({
+                    allowsEditing: true,
+                    aspect: [4, 5],
+                    quality: 0.4,
+                    base64: true,
+                });
+            }
+
+            if (result && !result.canceled && result.assets[0].base64) {
+                setLoading(true);
                 await uploadProgressPhoto(result.assets[0].base64);
                 Toast.show({ type: 'success', text1: 'Photo Saved!', text2: 'Transformation logged successfully.' });
-            } catch (error) {
-                Toast.show({ type: 'error', text1: 'Upload Failed', text2: 'Something went wrong.' });
-            } finally {
-                setLoading(false);
             }
+        } catch (error) {
+            console.error(error);
+            Toast.show({ type: 'error', text1: 'Upload Failed', text2: 'Something went wrong.' });
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -144,7 +178,7 @@ const ProgressGallery = () => {
                     disabled={loading}
                     className="bg-orange-500 w-10 h-10 rounded-full items-center justify-center"
                 >
-                    {loading ? <ActivityIndicator color="black" size="small" /> : <MaterialIcons name="photo-camera" size={20} color="black" />}
+                    {loading ? <ActivityIndicator color="black" size="small" /> : <MaterialIcons name="add-photo-alternate" size={22} color="black" />}
                 </TouchableOpacity>
             </View>
 
@@ -198,17 +232,15 @@ const ProgressGallery = () => {
 
                     return (
                         <View className="flex-row">
-                            {/* Timeline Thread indicator */}
                             <View className="items-center mr-4 w-8">
                                 <View className={`w-3 h-3 rounded-full border-2 ${isSelected ? 'bg-orange-500 border-orange-500' : 'bg-zinc-950 border-zinc-700'}`} />
                                 {index !== sortedPhotos.length - 1 && <View className="w-[1.5px] bg-zinc-800 flex-1 my-1" />}
                             </View>
 
-                            {/*  Photo Card */}
                             <TouchableOpacity
                                 activeOpacity={0.8}
                                 onPress={() => handlePhotoPress(item)}
-                                className={`flex-1 bg-zinc-900 border rounded-3xl p-3 mb-4 transition-all ${
+                                className={`flex-1 bg-zinc-900 border rounded-3xl p-3 mb-4 ${
                                     isSelected ? 'border-orange-500 bg-orange-500/5' : 'border-zinc-800'
                                 }`}
                             >

@@ -1,5 +1,14 @@
 import { db, auth } from '@/firebase';
-import { collection, addDoc, query, where, onSnapshot, doc, deleteDoc } from 'firebase/firestore';
+import {
+    collection,
+    addDoc,
+    query,
+    where,
+    onSnapshot,
+    doc,
+    deleteDoc,
+    serverTimestamp
+} from 'firebase/firestore';
 
 export interface ProgressPhoto {
     id: string;
@@ -15,9 +24,10 @@ export const uploadProgressPhoto = async (base64Image: string) => {
     await addDoc(collection(db, 'progress_photos'), {
         userId: user.uid,
         imageUri: `data:image/jpeg;base64,${base64Image}`,
-        date: new Date()
+        date: serverTimestamp()
     });
 };
+
 
 export const listenToProgressPhotos = (callback: (photos: ProgressPhoto[]) => void) => {
     const user = auth.currentUser;
@@ -30,13 +40,17 @@ export const listenToProgressPhotos = (callback: (photos: ProgressPhoto[]) => vo
 
     return onSnapshot(q, (snapshot) => {
         const photos: ProgressPhoto[] = [];
+
         snapshot.forEach((docSnap) => {
             const data = docSnap.data();
+
+            const safeDate = data.date ? data.date : { seconds: Math.floor(Date.now() / 1000) };
+
             photos.push({
                 id: docSnap.id,
                 userId: data.userId,
                 imageUri: data.imageUri,
-                date: data.date
+                date: safeDate
             });
         });
 
@@ -51,6 +65,7 @@ export const listenToProgressPhotos = (callback: (photos: ProgressPhoto[]) => vo
         console.error("Firestore Listen Error: ", error);
     });
 };
+
 
 export const deleteProgressPhoto = async (photoId: string) => {
     try {
