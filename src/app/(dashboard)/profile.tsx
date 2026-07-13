@@ -7,10 +7,12 @@ import {
   StatusBar,
   Alert,
   Image,
+  Modal,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import { logout } from '@/service/authService';
+import { logout, deleteUserAccount } from '@/service/authService';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { getUserProfile, updateUserProfile } from '@/service/userService';
@@ -44,8 +46,12 @@ const ProfileScreen: React.FC = () => {
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [editForm, setEditForm] = useState<UserProfile>(user);
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const [editForm, setEditForm] = useState<UserProfile>(user);
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
@@ -144,15 +150,39 @@ const ProfileScreen: React.FC = () => {
     Alert.alert('Success', 'Password changed successfully!');
   };
 
-  const handleDeleteAccount = () => {
-    Alert.alert(
-        'Delete Account',
-        'This action cannot be undone. All your workout data will be permanently deleted.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Delete', style: 'destructive', onPress: () => console.log('Delete account') }
-        ]
-    );
+  const handleDeleteAccountPress = () => {
+    setDeletePassword('');
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletePassword || deletePassword.trim() === '') {
+      Alert.alert('Error', 'Please enter your password to continue.');
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await deleteUserAccount(deletePassword.trim());
+
+      setShowDeleteModal(false);
+      setDeletePassword('');
+      Alert.alert("Success", "Your account has been permanently deleted.");
+
+      router.replace('/(auth)/login');
+    } catch (error: any) {
+      console.error('Error deleting account:', error);
+
+      if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        Alert.alert('Error', 'The password you entered is incorrect.');
+      } else if (error.code === 'auth/missing-password') {
+        Alert.alert('Error', 'Password is required to delete the account.');
+      } else {
+        Alert.alert('Error', error.message || 'Failed to delete account. Please try again.');
+      }
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const MenuSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
@@ -251,7 +281,7 @@ const ProfileScreen: React.FC = () => {
             <MenuItem icon="lock" title="Change Password" subtitle="Keep your account secure" onPress={() => setShowPasswordModal(true)} color="#f59e0b" />
           </MenuSection>
 
-          {/* Preferences Section - මෙතනට තමා අලුත් Component එක pass කරන්නේ */}
+          {/* Preferences Section */}
           <MenuSection title="Preferences">
             <NotificationSettings MenuItem={MenuItem} />
           </MenuSection>
@@ -272,7 +302,7 @@ const ProfileScreen: React.FC = () => {
                 }}
                 color="#ef4444"
             />
-            <MenuItem icon="delete-forever" title="Delete Account" subtitle="Permanently delete your gym account" onPress={handleDeleteAccount} color="#b91c1c" />
+            <MenuItem icon="delete-forever" title="Delete Account" subtitle="Permanently delete your gym account" onPress={handleDeleteAccountPress} color="#b91c1c" />
           </MenuSection>
 
           <Text className="text-center text-zinc-600 text-xs font-bold uppercase tracking-widest mt-4">
@@ -282,6 +312,55 @@ const ProfileScreen: React.FC = () => {
 
         <EditProfileModal showEditModal={showEditModal} setShowEditModal={setShowEditModal} editForm={editForm} setEditForm={setEditForm} handleSaveProfile={handleSaveProfile} />
         <ChangePasswordModal showPasswordModal={showPasswordModal} setShowPasswordModal={setShowPasswordModal} passwordForm={passwordForm} setPasswordForm={setPasswordForm} handleChangePassword={handleChangePassword} />
+
+        {/* DELETE ACCOUNT  */}
+        <Modal
+            animationType="fade"
+            transparent={true}
+            visible={showDeleteModal}
+            onRequestClose={() => setShowDeleteModal(false)}
+        >
+          <View className="flex-1 justify-center items-center bg-black/80 px-6">
+            <View className="bg-zinc-900 w-full rounded-3xl border border-zinc-800 p-6 shadow-2xl">
+              <Text className="text-red-500 font-black text-xl mb-2">Delete Account Permanently?</Text>
+              <Text className="text-zinc-400 text-sm mb-6 leading-5">
+                This action cannot be undone. All your workout plans, progress logs, and history will be wiped out instantly.
+              </Text>
+
+              <Text className="text-zinc-400 font-bold text-xs uppercase mb-2">Enter Your Password</Text>
+              <TextInput
+                  className="bg-zinc-950 border border-zinc-800 text-white rounded-xl p-4 mb-6"
+                  placeholder="Password"
+                  placeholderTextColor="#52525b"
+                  secureTextEntry={true}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  value={deletePassword}
+                  onChangeText={(text) => setDeletePassword(text)}
+              />
+
+              <View className="flex-row gap-3">
+                <TouchableOpacity
+                    onPress={() => setShowDeleteModal(false)}
+                    className="flex-1 bg-zinc-800 p-4 rounded-xl items-center"
+                    disabled={isDeleting}
+                >
+                  <Text className="text-white font-bold">Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    onPress={handleConfirmDelete}
+                    className={`flex-1 p-4 rounded-xl items-center ${isDeleting ? 'bg-red-900/50' : 'bg-red-600'}`}
+                    disabled={isDeleting}
+                >
+                  <Text className="text-white font-black">
+                    {isDeleting ? 'Deleting...' : 'Delete Now'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </SafeAreaView>
   );
 };
