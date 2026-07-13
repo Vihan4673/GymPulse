@@ -34,3 +34,29 @@ Open your terminal in the root project directory and run the following command t
 
 ```bash
 npm install
+
+## 📂 Project Folder Structure
+
+Below is the directory structure for the core components of the application:
+
+```text
+GymPulse/
+├── src/
+│   ├── app/                    # Expo Router - File-based routing
+│   │   ├── (dashboard)/        # Protected dashboard layout group
+│   │   │   ├── _layout.tsx     # Dashboard layout configuration
+│   │   │   └── reports.tsx     # 📊 Analytics & Reports Dashboard Screen
+│   │   ├── _layout.tsx         # App Root layout (LogBox & Providers)
+│   │   └── index.tsx           # App Entry point / Welcome Screen
+│   │
+│   ├── components/             # Reusable UI Components
+│   │   └── ui/                 # Custom global UI elements (Buttons, Cards)
+│   │
+│   ├── service/                # Business logic & Data layer
+│   │   └── workoutService.ts   # 📡 Realtime workout data snapshot listener
+│   │
+│   └── types/                  # Global TypeScript type definitions
+│
+├── assets/                     # Images, Fonts, and Static files
+├── package.json                # Project dependencies and scripts
+└── tailwind.config.js          # NativeWind / Tailwind configuration
