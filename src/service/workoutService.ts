@@ -48,9 +48,8 @@ export interface WorkoutPlan {
   createdAt: Date;
 }
 
-// 🛠️ Firestore dates වඩාත් ආරක්ෂිතව JS Date එකකට හැරවීමේ ශ්‍රිතය
 const parseFirestoreDate = (dateField: any): Date => {
-  if (!dateField) return new Date(); // serverTimestamp() එක තවම ලැබී නැතිනම් වත්මන් වෙලාව ගනී
+  if (!dateField) return new Date();
   if (typeof dateField.toDate === 'function') return dateField.toDate();
   if (dateField.seconds) return new Date(dateField.seconds * 1000);
   if (dateField instanceof Date) return dateField;
@@ -272,7 +271,6 @@ export const updateWorkoutPlan = async (
   const planRef = doc(db, "workout_plans", planId);
   const dataToUpdate: any = { ...updatedData };
 
-  // 🛠️ Local State එකෙන් සහ සර්වර් එකෙන් එන Completed data වඩාත් නිවැරදිව Handle කිරීම
   if (updatedData.completed === true) {
     dataToUpdate.lastCompletedAt = serverTimestamp();
   } else if (updatedData.completed === false) {
